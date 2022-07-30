@@ -1,0 +1,11 @@
+NAME	DEFAULT	TYPE	DECL	BRIEF	DESCRIPTION	H	C
+TESTING	0	OPTION	MACRO	Specifies if the code needs testing support (bool).	"- 0 Development and production.
+- 1 Unit-tests."
+DEBUG_PRINT	0	OPTION	VAR_UINT8	Specifies if the code needs to print debug messages (bool).	"- 0 No debug messages.
+- 1 Print debug messages."
+LCD_COLS	16	OPTION	MACRO_UINT8	LCD columns (int).
+LCD_LINES	2	OPTION	MACRO_UINT8	LCD lines (int).
+LCD_CALC_SIZE(cols, lines)	(((cols) << 8) | (lines))	VALUE	MACRO_UINT16	LCD size calc (cols, lines) -> (int).
+LCD_SIZE	LCD_CALC_SIZE(LCD_COLS, LCD_LINES)	VALUE	MACRO_UINT16	LCD size (int).	Supported sizes: 16x2 and 20x4.
+LCD_1602	LCD_CALC_SIZE(16, 2)	VALUE	MACRO_UINT16	LCD_SIZE 16x2 (int).
+LCD_2004	LCD_CALC_SIZE(20, 4)	VALUE	MACRO_UINT16	LCD_SIZE 20x4 (int).

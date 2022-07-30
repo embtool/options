@@ -1,0 +1,13 @@
+# LibreOffice and MSOffice lock files
+.*#
+~$*
+
+# Generated files
+src/
+include/
+
+# CMake build directory
+build/
+
+# Manual compilation output
+main
