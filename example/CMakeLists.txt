@@ -7,13 +7,19 @@ set(CHAR_ID
     CACHE STRING "Characterization")
 
 # Add Toggle as an external project
-include(FetchContent)
-FetchContent_Declare(
-  toggle
-  GIT_REPOSITORY https://github.com/embtool/toggle
-  GIT_TAG main # or use a tag, eg. v1.0
-)
-FetchContent_MakeAvailable(toggle)
+#
+# ~~~
+# include(FetchContent)
+# FetchContent_Declare(
+#   toggle
+#   GIT_REPOSITORY https://github.com/embtool/toggle
+#   GIT_TAG main # or use a tag, eg. v1.0
+# )
+# FetchContent_MakeAvailable(toggle)
+# ~~~
+
+# For this example we add Toggle as a subdirectory
+add_subdirectory(.. toggle)
 
 # Create a characterization library using Toggle
 add_toggle_library(characterization ${CMAKE_CURRENT_SOURCE_DIR})

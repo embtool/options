@@ -6,6 +6,9 @@ project(toggle VERSION 1.0)
 # The generated files are updated whenever the files csv/defaults.csv or
 # csv/char_ids.csv change.
 #
+# Pass the library name and the path to the csv/ directory. The generated files
+# are created in include/ and src/ in that directory.
+#
 # Usage: add_toggle_library(mycharids path/to/chars)
 #
 # The usage example above adds two Toggle libraries:
