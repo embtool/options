@@ -25,6 +25,18 @@ decl_dict = {
     "CHAR_ARRAY": "char @NAME@[]",
 }
 
+testing_reset_toggles_decl = f"""\
+/** @brief Reset toggles to the initialization values.
+ *
+ * Call this function in the setup of a test suite to start every
+ * test with consistent values.
+ *
+ * This function is available only when testing is enabled (when
+ * `TESTING` is defined as 1).
+ */
+void testing_reset_toggles(void);
+"""
+
 
 def read_csv_file(
     csv_input: FileName, delimiter="\t", quotechar='"'
@@ -176,13 +188,13 @@ extern "C"
 
 """
     for name, data in defaults.items():
-        typ = data["TYPE"]
         code_option_doc += f"""\
-    {format_brief_descr_comment(data['BRIEF'], data['DESCRIPTION'], indent=4)}
-    {format_h_declaration(data)}
+{apply_indent(format_brief_descr_comment(data['BRIEF'], data['DESCRIPTION']), indent=4)}
+{apply_indent(format_h_declaration(data), indent=4)}
 
 """
-    code_option_doc += """\
+    code_option_doc += apply_indent(testing_reset_toggles_decl, indent=4)
+    code_option_doc += """
 #endif /* DOXYGEN */
 
 """
@@ -242,7 +254,7 @@ def create_directory(filename: FileName):
 
 
 def format_brief_descr_comment(
-    brief: str, descr: str, indent: int = 0, mid_comment: bool = False
+    brief: str, descr: str, mid_comment: bool = False
 ) -> str:
     comment = "" if mid_comment else "/** "
 
@@ -250,12 +262,15 @@ def format_brief_descr_comment(
         comment += f"@brief {brief}"
         comment += "" if mid_comment else " */"
     else:
-        comment += f"@brief {brief}" + format_comment(
-            "\n" + descr, indent=indent
-        )
-        comment += "" if mid_comment else f"\n{' ' * indent} */"
+        comment += f"@brief {brief}" + format_comment("\n" + descr)
+        comment += "" if mid_comment else f"\n */"
 
     return comment
+
+
+def apply_indent(code: str, indent: int) -> str:
+    indent = " " * indent
+    return indent + ("\n" + indent).join(code.split("\n"))
 
 
 def write_characterization_source(
@@ -315,10 +330,23 @@ def write_char_id_source(
     # Options value
     code_option = ""
     for name, data in defaults.items():
-        typ = data["TYPE"]
         code_option += f"""\
 {format_c_definition(data, char_id)}
 """
+
+    ####################################################################
+    # Testing functions
+
+    if is_testing(char_id):
+        code_option += """
+void testing_reset_toggles(void)
+{
+"""
+        for name, data in defaults.items():
+            code_option += f"""\
+{apply_indent(format_c_assignment(data, char_id), indent=4)}
+"""
+        code_option += "}\n"
 
     ####################################################################
     # Fit everything together and write
@@ -345,7 +373,7 @@ def write_char_id_header(
 
 /** @file {file_name}
  * {format_brief_descr_comment(
-        char_id['BRIEF'], char_id["DESCRIPTION"], indent=0, mid_comment=True
+        char_id['BRIEF'], char_id["DESCRIPTION"], mid_comment=True
     )}
  */
 
@@ -361,12 +389,17 @@ def write_char_id_header(
     # Options value
     code_option = ""
     for name, data in defaults.items():
-        typ = data["TYPE"]
         code_option += f"""\
-{format_brief_descr_comment(data['BRIEF'], data['DESCRIPTION'], indent=0)}
+{format_brief_descr_comment(data['BRIEF'], data['DESCRIPTION'])}
 {format_h_declaration(data, char_id)}
 
 """
+
+    ####################################################################
+    # Testing functions
+
+    if is_testing(char_id):
+        code_option += apply_indent(testing_reset_toggles_decl, indent=0)
 
     ####################################################################
     # Fit everything together and write
@@ -395,6 +428,13 @@ def format_c_definition(
 ) -> str:
     code = defaults["C"]
     return format_ch_def_decl(code, defaults, char_id, format="def")
+
+
+def format_c_assignment(
+    defaults: Dict[str, str], char_id: Optional[Dict[str, str]] = None
+) -> str:
+    code = defaults["C_ASSIGN"]
+    return format_ch_def_decl(code, defaults, char_id, format="assign")
 
 
 def is_testing(char_id: Optional[Dict[str, str]] = None) -> bool:
@@ -452,29 +492,34 @@ def format_ch_def_decl(
         name, defaults, char_id
     )
 
+    # No custom code. Generate default.
+
+    # TYPE and DECL
+    if typ == "VALUE":
+        testing_changes = False
+    elif typ == "OPTION":
+        testing_changes = True
+    else:
+        raise NotImplementedError(
+            f'TYPE = "{typ}" is not implemented. ' 'Valid: ["VALUE", "OPTION"].'
+        )
+
+    # DECL part 1
+    if decl == "MACRO":
+        # MACRO (without type) cannot be tested
+        testing_changes = False
+    elif decl == "CUSTOM":
+        # CUSTOM cannot be tested
+        testing_changes = False
+
     if code == "":
-        # No custom code. Generate default.
-
-        # TYPE and DECL
-        if typ == "VALUE":
-            testing_changes = False
-        elif typ == "OPTION":
-            testing_changes = True
-        else:
-            raise NotImplementedError(
-                f'TYPE = "{typ}" is not implemented. '
-                'Valid: ["VALUE", "OPTION"].'
-            )
-
-        # DECL
+        # DECL part 2
         if decl == "MACRO":
             # MACRO (without type) cannot be tested
-            testing_changes = False
             base = "MACRO"
             decl = "MACRO"
         elif decl == "CUSTOM":
             # CUSTOM cannot be tested
-            testing_changes = False
             # Nothing to do for custom
             return code
         elif (
@@ -505,21 +550,29 @@ def format_ch_def_decl(
                     code = f"extern {decl};"
                 elif format == "def":
                     code = f"{decl} = @VALUE@;"
+                elif format == "assign":
+                    code = f"@NAME@ = @VALUE@;"
             else:
                 if format == "decl":
                     code = f"#define @NAME@ @VALUE@"
                 elif format == "def":
+                    code = ""
+                elif format == "assign":
                     code = ""
         elif base == "CONST":
             if format == "decl":
                 code = f"extern @CONST@ {decl};"
             elif format == "def":
                 code = f"@CONST@ {decl} = @VALUE@;"
+            elif format == "assign":
+                code = f"@NAME@ = @VALUE@;"
         elif base == "VAR":
             if format == "decl":
                 code = f"extern {decl};"
             elif format == "def":
                 code = f"{decl} = @VALUE@;"
+            elif format == "assign":
+                code = f"@NAME@ = @VALUE@;"
 
     # Update values on the code
     code = code.replace("@NAME@", name)
@@ -541,6 +594,10 @@ def clean_code(code: str) -> str:
 
     # Remove trailing whitespace
     code = re.sub(r"[ \t]+$", r"", code, flags=re.MULTILINE)
+
+    # One new line before and after braces
+    code = re.sub(r"\n\n+}", r"\n}", code)
+    code = re.sub(r"{\n\n+", r"{\n", code)
 
     # No multiple new lines
     code = re.sub(r"\n\n\n+", r"\n\n", code)
