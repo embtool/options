@@ -349,8 +349,19 @@ void testing_reset_toggles(void)
         code_option += "}\n"
 
     ####################################################################
+    # Necessary headers
+
+    necessary_headers = ""
+    found_headers = re.findall(
+        r"TOP_C: (.*?)(?:\s*\*\/)?$", code_option, re.MULTILINE
+    )
+    # necessary_headers += "\n/*\n" + str(found_headers) + "\n*/\n"
+    necessary_headers += "\n".join(found_headers)
+    necessary_headers += "\n"
+
+    ####################################################################
     # Fit everything together and write
-    code = code_begin + code_option + code_end
+    code = code_begin + necessary_headers + code_option + code_end
     code = clean_code(code)
     create_directory(code_output)
     with open(code_output, "w") as fp:
