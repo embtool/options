@@ -93,6 +93,15 @@ def read_defaults(
 
         defaults[name] = dict(zip(header, row))
 
+        # Add missing columns
+        for col in (
+            "H",
+            "C",
+            "C_ASSIGN",
+        ):
+            if col not in defaults[name]:
+                defaults[name][col] = ""
+
     return defaults
 
 
