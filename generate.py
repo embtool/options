@@ -558,6 +558,8 @@ def format_ch_def_decl(
         # Changes when testing
         if base == "MACRO":
             if testing and testing_changes:
+                # When testing and not a value, a macro is transformed
+                # in a non-const variable
                 if format == "decl":
                     code = f"extern {decl};"
                 elif format == "def":
@@ -576,8 +578,11 @@ def format_ch_def_decl(
                 code = f"extern @CONST@ {decl};"
             elif format == "def":
                 code = f"@CONST@ {decl} = @VALUE@;"
-            elif format == "assign":
-                code = f"@NAME@ = @VALUE@;"
+            elif testing and testing_changes:
+                # When testing and not a value, a const is transformed
+                # in a non-const variable
+                if format == "assign":
+                    code = f"@NAME@ = @VALUE@;"
         elif base == "VAR":
             if format == "decl":
                 code = f"extern {decl};"
