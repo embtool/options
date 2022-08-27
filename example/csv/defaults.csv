@@ -1,4 +1,4 @@
-NAME	DEFAULT	TYPE	DECL	BRIEF	DESCRIPTION	H	C	C_ASSIGN
+NAME	DEFAULT	TYPE	DECL	BRIEF	DESCRIPTION	H	C	TEST_ASSIGN
 TESTING	0	OPTION	MACRO	Specifies if the code needs testing support (bool).	"- 0 Development and production.
 - 1 Unit-tests."
 DEBUG_PRINT	0	OPTION	VAR_UINT8	Specifies if the code needs to print debug messages (bool).	"- 0 No debug messages.

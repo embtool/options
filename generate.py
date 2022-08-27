@@ -97,7 +97,7 @@ def read_defaults(
         for col in (
             "H",
             "C",
-            "C_ASSIGN",
+            "TEST_ASSIGN",
         ):
             if col not in defaults[name]:
                 defaults[name][col] = ""
@@ -454,7 +454,7 @@ def format_c_definition(
 def format_c_assignment(
     defaults: Dict[str, str], char_id: Optional[Dict[str, str]] = None
 ) -> str:
-    code = defaults["C_ASSIGN"]
+    code = defaults["TEST_ASSIGN"]
     return format_ch_def_decl(code, defaults, char_id, format="assign")
 
 
