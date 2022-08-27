@@ -170,10 +170,11 @@ characterizations. The description of the columns is provide below.
 - **DEFAULT**: Default value
 - **TYPE**: OPTION or VALUE
 - **DECL**: Declaration type
-- **H**: Custom header declaration
-- **C**: Custom source definition
 - **BRIEF**: Brief description
 - **DESCRIPTION**: Full description
+- **H**: Custom header declaration
+- **C**: Custom source definition
+- **TEST_ASSIGN**: Custom assignment for tests
 
 Example of csv/defaults.csv file:
 
@@ -315,8 +316,23 @@ converted to non-constants.
 Note that only `TYPE=OPTION` are modified when `TESTING=1`.
 `TYPE=VALUE` are NOT converted, to assure they do not change.
 
-**H**: Custom header declaration. Defines how to declare the option in the
-header `toggle.h`. Use `@NAME@` as a placeholder for the
+The table below shows the the resulting type of an option or value and
+marks with a plus (+) when it is is testable (can be changed at run
+time).
+
+| TYPE   | TESTING   | MACRO | MACRO_type | CONST_type | VAR_type |
+| ------ | --------- | ----- | ---------- | ---------- | -------- |
+| OPTION | TESTING=0 | macro | macro      | const type | type (+) |
+| OPTION | TESTING=1 | macro | type (+)   | type (+)   | type (+) |
+| VALUE  | TESTING=0 | macro | macro      | const type | type (+) |
+| VALUE  | TESTING=1 | macro | macro      | const type | type (+) |
+
+**BRIEF**: Brief description to be added as documentation.
+
+**DESCRIPTION**: Additional description to be added as documentation.
+
+**H**: Custom header declaration. Specifies how to declare the option in
+the header `toggle.h`. Use `@NAME@` as a placeholder for the
 option name, `@VALUE@` as a placeholder for the option value, and
 `@CONST@` as a placeholder for the constness.
 
@@ -330,11 +346,11 @@ Examples:
 - Integer: `extern @CONST@ int @NAME@;`
 - String: `extern @CONST@ char @NAME@[];`
 
-Placeholder for constness? When `TESTING=1` the constness is removed to
-enable testing.
+Why a placeholder for constness? When `TESTING=1` the constness is
+removed to enable testing.
 
-**C**: Custom source definition. Defines how to define the option in the
-source `toggle.c`. Works the same way as in the header, using
+**C**: Custom source definition. Specifies how to define the option in
+the source `toggle.c`. Works the same way as in the header, using
 `@NAME@`, `@VALUE@`, and `@CONST@` as placeholders.
 
 Examples:
@@ -344,9 +360,42 @@ Examples:
 - Integer: `@CONST@ int @NAME@ = @VALUE@;`
 - String: `@CONST@ char @NAME@[] = @VALUE@;`
 
-**BRIEF**: Brief description to be added as documentation.
+If there is a need to include or define something at before the
+definitions (in the C file) write a comment in the form: `TOP_C: ...`.
 
-**DESCRIPTION**: Additional description to be added as documentation.
+```cpp
+/* TOP_C: #include <stddef.h> */
+
+/* TOP_C: #ifndef MY_ASSERT
+ * TOP_C:     #define MY_ASSERT(x) if (!(x)) { for (;;) {} }
+ * TOP_C: #endif
+ */
+
+// TOP_C: typedef unsigned char my_size;
+```
+
+**TEST_ASSIGN**: Custom assignment for tests. Specifies how to assign
+values to the options, so they can be reset to the original values
+when testing, allowing the tests to start with consistent options.
+Works the same way as in the header, using `@NAME@`, `@VALUE@`, and
+`@CONST@` as placeholders.
+
+When `TESTING=1` is the function `testing_reset_toggles()` is available
+and uses this (or the default) assignment recipe to assign the original
+value to the options.
+
+Examples:
+
+- Macro: (nothing)
+- Boolean: `@NAME@ = @VALUE@;`
+- Integer: `@NAME@ = @VALUE@;`
+- String:
+  - Resetting a string is a bit cumbersome. Include `<string.h>` and use
+    `strncpy()` or write a loop yourself.
+  ```
+  /* TOP_C: #include <string.h> */
+  strncpy(@NAME@, @VALUE@, sizeof(@NAME@));
+  ```
 
 ## Details of File: `csv/char_ids.csv`
 
