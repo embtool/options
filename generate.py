@@ -204,6 +204,7 @@ extern "C"
     code_char_ids = """\
 /* List of CHAR_IDs. */
 """
+    num = -1  # Set variable for empty char_ids
     for num, items in enumerate(char_ids.items()):
         char_id, data = items
         code_char_ids += (
