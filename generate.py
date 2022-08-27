@@ -25,6 +25,15 @@ decl_dict = {
     "CHAR_ARRAY": "char @NAME@[]",
 }
 
+test_assign_dict = {
+    "CHAR_ARRAY": """\
+{ /* TOP_C: #include <string.h> */
+    const char @NAME@_orig[] = @VALUE@;
+    strncpy(@NAME@, @NAME@_orig, sizeof(@NAME@));
+}
+""",
+}
+
 testing_reset_toggles_decl = f"""\
 /** @brief Reset toggles to the initialization values.
  *
@@ -549,15 +558,20 @@ def format_ch_def_decl(
             or decl.startswith("VAR_")
         ):
             # MACRO_*, CONST_* or VAR_*
-            base, decl = decl.split("_", 1)
+            base, orig_decl = decl.split("_", 1)
 
-            if decl in decl_dict:
-                decl = decl_dict[decl]
+            if orig_decl in decl_dict:
+                decl = decl_dict[orig_decl]
             else:
                 raise NotImplementedError(
                     f'DECL = "{decl}" is not implemented. '
                     'Valid: ["*_UINT8", etc].'
                 )
+
+            if orig_decl in test_assign_dict:
+                test_assign = test_assign_dict[orig_decl]
+            else:
+                test_assign = "@NAME@ = @VALUE@;"
         else:
             raise NotImplementedError(
                 f'DECL = "{decl}" is not implemented. '
@@ -574,7 +588,7 @@ def format_ch_def_decl(
                 elif format == "def":
                     code = f"{decl} = @VALUE@;"
                 elif format == "assign":
-                    code = f"@NAME@ = @VALUE@;"
+                    code = test_assign
             else:
                 if format == "decl":
                     code = f"#define @NAME@ @VALUE@"
@@ -591,14 +605,14 @@ def format_ch_def_decl(
                 # When testing and not a value, a const is transformed
                 # in a non-const variable
                 if format == "assign":
-                    code = f"@NAME@ = @VALUE@;"
+                    code = test_assign
         elif base == "VAR":
             if format == "decl":
                 code = f"extern {decl};"
             elif format == "def":
                 code = f"{decl} = @VALUE@;"
             elif format == "assign":
-                code = f"@NAME@ = @VALUE@;"
+                code = test_assign
 
     # Update values on the code
     code = code.replace("@NAME@", name)
