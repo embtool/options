@@ -374,7 +374,7 @@ void testing_reset_toggles(void)
     found_headers = re.findall(
         r"TOP_C: (.*?)(?:\s*\*\/)?$", code_option, re.MULTILINE
     )
-    # necessary_headers += "\n/*\n" + str(found_headers) + "\n*/\n"
+    found_headers = list(set(found_headers))
     necessary_headers += "\n".join(found_headers)
     necessary_headers += "\n"
 
