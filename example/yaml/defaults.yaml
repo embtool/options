@@ -1,0 +1,68 @@
+- NAME: TESTING
+  DEFAULT: 0
+  TYPE: OPTION
+  DECL: MACRO
+  BRIEF: Specifies if the code needs testing support (bool).
+  DESCRIPTION: |
+    - 0 Development and production.
+    - 1 Unit-tests.
+
+- NAME: DEBUG_PRINT
+  DEFAULT: 0
+  TYPE: OPTION
+  DECL: VAR_UINT8
+  BRIEF: Specifies if the code needs to print debug messages (bool).
+  DESCRIPTION: |
+    - 0 No debug messages.
+    - 1 Print debug messages.
+
+- NAME: LCD_COLS
+  DEFAULT: 16
+  TYPE: OPTION
+  DECL: MACRO_UINT8
+  BRIEF: LCD columns (int).
+
+- NAME: LCD_LINES
+  DEFAULT: 2
+  TYPE: OPTION
+  DECL: MACRO_UINT8
+  BRIEF: LCD lines (int).
+
+- NAME: LCD_CALC_SIZE(cols, lines)
+  DEFAULT: (((cols) << 8) | (lines))
+  TYPE: VALUE
+  DECL: MACRO_UINT16
+  BRIEF: LCD size calc (cols, lines) -> (int).
+
+- NAME: LCD_SIZE
+  DEFAULT: LCD_CALC_SIZE(LCD_COLS, LCD_LINES)
+  TYPE: VALUE
+  DECL: MACRO_UINT16
+  BRIEF: LCD size (int).
+  DESCRIPTION: |
+    Supported sizes: 16x2 and 20x4.
+
+- NAME: LCD_1602
+  DEFAULT: LCD_CALC_SIZE(16, 2)
+  TYPE: VALUE
+  DECL: MACRO_UINT16
+  BRIEF: LCD_SIZE 16x2 (int).
+
+- NAME: LCD_2004
+  DEFAULT: LCD_CALC_SIZE(20, 4)
+  TYPE: VALUE
+  DECL: MACRO_UINT16
+  BRIEF: LCD_SIZE 20x4 (int).
+
+- NAME: CLIENT_NAME
+  DEFAULT: '"Client Name"'
+  TYPE: OPTION
+  DECL: CHAR_ARRAY
+  BRIEF: Client name, showed during initialization.
+  H: |
+    extern @CONST@ char @NAME@[];
+  C: |
+    @CONST@ char @NAME@[] = @VALUE@;
+  TEST_ASSIGN: |
+    /* TOP_C: #include <string.h> */
+    strncpy(@NAME@, @VALUE@, sizeof(@NAME@));

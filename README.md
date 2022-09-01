@@ -40,11 +40,9 @@ More Features:
     with similar definitions.
   - Avoid missing some definition.
 - Simple file format, easy to edit, review and source control:
-  - Characterizations are defined in two CSV files.
-  - CSVs are simple text files that can be diffed, reviewed, and source
+  - Characterizations are defined in two YAML files.
+  - YAMLs are simple text files that can be diffed, reviewed, and source
     controlled.
-  - CSVs can be opened and edited on Excel, LibreOffice Calc, or any
-    text editor.
 - Flexible:
   - Default declaration and definitions.
   - Customize declaration and definitions every option.
@@ -56,25 +54,18 @@ Dependencies:
 
 ## Using (manual generation)
 
-Using Toggle is just a matter of editing two CSV files, where you define
-the options available for the characterizations (csv/defaults.csv)
+Using Toggle is just a matter of editing two YAML files, where you define
+the options available for the characterizations (yaml/defaults.yaml)
 and define the characterizations with the values for the options
-(csv/char_ids.csv).
+(yaml/char_ids.yaml).
 
-1. Edit the CSV files:
-   - `csv/defaults.csv`: Define the option name, default value,
+1. Edit the YAML files:
+   - `yaml/defaults.yaml`: Define the option name, default value,
      type, declaration type, brief description, full description,
      custom header declaration, and custom source definition.
-     - One option per line.
-   - `csv/char_ids.csv`: Define the characterization (char IDs),
+   - `yaml/char_ids.yaml`: Define the characterization (char IDs),
      brief description, full description, and values for the options.
-     - One characterization per line.
-     - One option per column.
      - Options not present use the default value.
-     - Options present but empty also use the default value.
-   - Use Excel, LibreOffice, or text editor:
-     - Field delimiter: `\t` (tab)
-     - Quote delimiter: `"` (double quote)
 2. Run `generate.py`.
    - Generate `include/toggle.h`, `src/toggle.c`, and files specific for
      the characterizations.
@@ -91,7 +82,7 @@ See the example/.
 ## Using with CMake (automated generation)
 
 To use Toggle in a CMake project allows automated generation of the
-characterization code, every time one of the CSV files change.
+characterization code, every time one of the YAML files change.
 
 Add Toggle as an external project (see example/CMakeLists.txt),
 or add it as a subdirectory (using add_subdirectory()),
@@ -131,39 +122,9 @@ target_link_libraries(main PRIVATE characterization)
 
 See the example/.
 
-## Questions and Answers
+## Details of File: `yaml/defaults.yaml`
 
-Q: Why tab (and not comma) as the separator?
-
-A: Because it is easier to review changes:
-
-1. Diff tools highlight only what changed, instead of a big block
-   with no whitespace.
-   It is easier for diff tools to highlight only what changed when
-   everything is separated by whitespace.
-   - Example 1 (command-line):
-     Try `git diff --ignore-all-space --word-diff=color`.
-   - Example 2 (GUI):
-     Open `gitk`, enable "Ignore whitespace change" and change from
-     "Line diff" to "Color words".
-2. Combining tab separator AND removing trailing whitespace result in
-   fewer lines changed in a CSV files.
-   - Adding a new option in `csv/defaults.csv` just adds a line and it
-     is easy to review, even using comma as separator.
-   - However, adding an option in `csv/char_id.csv` adds a column,
-     changing ALL the lines, which is hard to review.
-     Combining tab separator AND removing trailing whitespace will
-     change only the header and the lines a value is set.
-
-Q: How to I use a double quote if it is the quote delimiter?
-
-A: Open the quote write the text and close the quote.
-Double any quotes in between the opening and closing.
-Example: _I said "Hello!"_ `"I said ""Hello!"""`.
-
-## Details of File: `csv/defaults.csv`
-
-The file `csv/defaults.csv` defines the list of options for the
+The file `yaml/defaults.yaml` defines the list of options for the
 characterizations. The description of the columns is provide below.
 
 - **NAME**: Option name
@@ -176,24 +137,55 @@ characterizations. The description of the columns is provide below.
 - **C**: Custom source definition
 - **TEST_ASSIGN**: Custom assignment for tests
 
-Example of csv/defaults.csv file:
+Example of yaml/defaults.yaml file:
 
-```csv
-NAME	DEFAULT	TYPE	DECL	H	C	BRIEF	DESCRIPTION
-TESTING	0	OPTION	MACRO			Testing support.	"0: dev or prod; 1: unit-test."
-SERIAL_DEBUG	NO_SER_DBG	OPTION	MACRO_INT8			Serial debug.
-NO_SER_DBG	0	VALUE	MACRO_INT8			No serial debug.	@see SERIAL_DEBUG.
-SER_DBG_UART3	1	VALUE	MACRO_INT8			Serial debug on UART3.	@see SERIAL_DEBUG.
-SER_DBG_UART2	2	VALUE	MACRO_INT8			Serial debug on UART2.	@see SERIAL_DEBUG.
+```yaml
+- NAME: TESTING
+  DEFAULT: 0
+  TYPE: OPTION
+  DECL: MACRO
+  BRIEF: Testing support.
+  DESCRIPTION: |
+    0: dev or prod; 1: unit-test.
+
+- NAME: SERIAL_DEBUG
+  DEFAULT: NO_SER_DBG
+  TYPE: OPTION
+  DECL: MACRO_INT8
+  BRIEF: Serial debug.
+
+- NAME: NO_SER_DBG
+  DEFAULT: 0
+  TYPE: VALUE
+  DECL: MACRO_INT8
+  BRIEF: No serial debug.
+  DESCRIPTION: |
+    @see SERIAL_DEBUG.
+
+- NAME: SER_DBG_UART3
+  DEFAULT: 1
+  TYPE: VALUE
+  DECL: MACRO_INT8
+  BRIEF: Serial debug on UART3.
+  DESCRIPTION: |
+    @see SERIAL_DEBUG.
+
+- NAME: SER_DBG_UART2
+  DEFAULT: 2
+  TYPE: VALUE
+  DECL: MACRO_INT8
+  BRIEF: Serial debug on UART2.
+  DESCRIPTION: |
+    @see SERIAL_DEBUG.
 ```
 
-| NAME          | DEFAULT    | TYPE   | DECL       | H   | C   | BRIEF                  | DESCRIPTION                   |
-| ------------- | ---------- | ------ | ---------- | --- | --- | ---------------------- | ----------------------------- |
-| TESTING       | 0          | OPTION | MACRO      |     |     | Testing support.       | 0: dev or prod; 1: unit-test. |
-| SERIAL_DEBUG  | NO_SER_DBG | OPTION | MACRO_INT8 |     |     | Serial debug.          |                               |
-| NO_SER_DBG    | 0          | VALUE  | MACRO_INT8 |     |     | No serial debug.       | @see SERIAL_DEBUG.            |
-| SER_DBG_UART3 | 1          | VALUE  | MACRO_INT8 |     |     | Serial debug on UART3. | @see SERIAL_DEBUG.            |
-| SER_DBG_UART2 | 2          | VALUE  | MACRO_INT8 |     |     | Serial debug on UART2. | @see SERIAL_DEBUG.            |
+| NAME          | DEFAULT    | TYPE   | DECL       | BRIEF                  | DESCRIPTION                   |
+| ------------- | ---------- | ------ | ---------- | ---------------------- | ----------------------------- |
+| TESTING       | 0          | OPTION | MACRO      | Testing support.       | 0: dev or prod; 1: unit-test. |
+| SERIAL_DEBUG  | NO_SER_DBG | OPTION | MACRO_INT8 | Serial debug.          |                               |
+| NO_SER_DBG    | 0          | VALUE  | MACRO_INT8 | No serial debug.       | @see SERIAL_DEBUG.            |
+| SER_DBG_UART3 | 1          | VALUE  | MACRO_INT8 | Serial debug on UART3. | @see SERIAL_DEBUG.            |
+| SER_DBG_UART2 | 2          | VALUE  | MACRO_INT8 | Serial debug on UART2. | @see SERIAL_DEBUG.            |
 
 **NAME**: Option name of the option/feature. Must be a valid C/C++
 identifier (`[a-zA-Z][a-za-z0-9]*`).
@@ -213,11 +205,11 @@ Then you create an option named `SERIAL_DEBUG`, and a good default
 value would be 0 (disabled), while 1 (enabled) is defined
 only in the v2.0 characterization.
 
-csv/defaults.csv:
+yaml/defaults.yaml:
 
-| NAME         | DEFAULT | TYPE   | DECL       | H   | C   | BRIEF | DESCRIPTION |
-| ------------ | ------- | ------ | ---------- | --- | --- | ----- | ----------- |
-| SERIAL_DEBUG | 0       | OPTION | MACRO_INT8 |     |     |       |             |
+| NAME         | DEFAULT | TYPE   | DECL       | BRIEF | DESCRIPTION |
+| ------------ | ------- | ------ | ---------- | ----- | ----------- |
+| SERIAL_DEBUG | 0       | OPTION | MACRO_INT8 |       |             |
 
 ```cpp
 if (SERIAL_DEBUG)
@@ -242,14 +234,14 @@ actual names for the values of the option, adding `NO_SER_DBG` (0 - meaning
 disabled, v1.0), `SER_DBG_UART3` (1 - meaning to use UART3, v2.0), and
 `SER_DBG_UART2` (2 - meaning to use UART2, V3.0).
 
-csv/defaults.csv:
+yaml/defaults.yaml:
 
-| NAME          | DEFAULT    | TYPE   | DECL       | H   | C   | BRIEF | DESCRIPTION |
-| ------------- | ---------- | ------ | ---------- | --- | --- | ----- | ----------- |
-| SERIAL_DEBUG  | NO_SER_DBG | OPTION | MACRO_INT8 |     |     |       |             |
-| NO_SER_DBG    | 0          | VALUE  | MACRO_INT8 |     |     |       |             |
-| SER_DBG_UART3 | 1          | VALUE  | MACRO_INT8 |     |     |       |             |
-| SER_DBG_UART2 | 2          | VALUE  | MACRO_INT8 |     |     |       |             |
+| NAME          | DEFAULT    | TYPE   | DECL       | BRIEF | DESCRIPTION |
+| ------------- | ---------- | ------ | ---------- | ----- | ----------- |
+| SERIAL_DEBUG  | NO_SER_DBG | OPTION | MACRO_INT8 |       |             |
+| NO_SER_DBG    | 0          | VALUE  | MACRO_INT8 |       |             |
+| SER_DBG_UART3 | 1          | VALUE  | MACRO_INT8 |       |             |
+| SER_DBG_UART2 | 2          | VALUE  | MACRO_INT8 |       |             |
 
 ```cpp
 if (SERIAL_DEBUG == SER_DBG_UART3)
@@ -397,9 +389,9 @@ Examples:
   strncpy(@NAME@, @VALUE@, sizeof(@NAME@));
   ```
 
-## Details of File: `csv/char_ids.csv`
+## Details of File: `yaml/char_ids.yaml`
 
-The file `csv/char_ids.csv` defines the list of characterizations and
+The file `yaml/char_ids.yaml` defines the list of characterizations and
 their values. The description of the columns is provide below.
 
 - **CHAR_ID**: Characterization name
@@ -408,14 +400,27 @@ their values. The description of the columns is provide below.
 - **TESTING**: Special option for testing
 - **Other options**: Additional options set for the characterizations
 
-Example of csv/char_ids.csv file:
+Example of yaml/char_ids.yaml file:
 
-```csv
-CHAR_ID	BRIEF	DESCRIPTION	TESTING	SERIAL_DEBUG
-CHAR_ID_TEST	Unit-tests.	Unit-tests.	1
-HW_V1	Hardware v1.0.	First version.
-HW_V2	Hardware v2.0.	Serial debug.		SER_DBT_UART3
-HW_V3	Hardware v3.0.	Serial debug on UART2.		SER_DBT_UART2
+```yaml
+- CHAR_ID: CHAR_ID_TEST
+  BRIEF: Unit-tests.
+  DESCRIPTION: Unit-tests.
+  TESTING: 1
+
+- CHAR_ID: HW_V1
+  BRIEF: Hardware v1.0.
+  DESCRIPTION: First version.
+
+- CHAR_ID: HW_V2
+  BRIEF: Hardware v2.0.
+  DESCRIPTION: Serial debug.
+  SERIAL_DEBUG: SER_DBT_UART3
+
+- CHAR_ID: HW_V3
+  BRIEF: Hardware v3.0.
+  DESCRIPTION: Serial debug on UART2.
+  SERIAL_DEBUG: SER_DBT_UART2
 ```
 
 | CHAR_ID      | BRIEF          | DESCRIPTION            | TESTING | SERIAL_DEBUG  |
@@ -442,24 +447,33 @@ variables.
 
 # Minimal Configuration
 
-- csv/defaults.csv:
+- yaml/defaults.yaml:
   - It is recommended to leave the option "TESTING" in the defaults file.
+  - Add other options as you need.
 
-```csv
-NAME	DEFAULT	TYPE	DECL	BRIEF	DESCRIPTION	H	C
-TESTING	0	OPTION	MACRO	"Testing support."	"0: dev or prod; 1: test."
+```yaml
+- NAME: TESTING
+  DEFAULT: 0
+  TYPE: OPTION
+  DECL: MACRO
+  BRIEF: Specifies if the code needs testing support (bool).
+  DESCRIPTION: |
+    - 0 Development and production.
+    - 1 Unit-tests.
 ```
 
-- csv/char_ids.csv:
+- yaml/char_ids.yaml:
   - It is recommended to leave the characterizations "CHAR_ID_TEST" and
     "CHAR_ID_EXAMPLE" in the characterizations file.
+  - Add characterizations as you need.
 
-```csv
-CHAR_ID	BRIEF	DESCRIPTION	TESTING
-CHAR_ID_TEST	Unit-tests.	Unit-tests.	1
-CHAR_ID_EXAMPLE	Unit-tests.	Unit-tests.
+```yaml
+- CHAR_ID: CHAR_ID_TESTS
+  BRIEF: Testing.
+  DESCRIPTION: Characterization for unit-tests.
+  TESTING: 1
+
+- CHAR_ID: CHAR_ID_EXAMPLE
+  BRIEF: Example.
+  DESCRIPTION: Characterization with default values.
 ```
-
-Set CHAR_ID_EXAMPLE as the default CHAR_ID:
-
-set(CHAR_ID CHAR_ID_EXAMPLE CACHE STRING "Characterization")

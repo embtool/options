@@ -1,5 +1,0 @@
-CHAR_ID	BRIEF	DESCRIPTION	TESTING	DEBUG_PRINT	LCD_COLS	LCD_LINES	CLIENT_NAME
-CHAR_ID_TEST	Unit-tests.	Unit-tests.	1	1			"""XXXXXXXX 31 chars+null XXXXXXXX"""
-CHAR_ID_EXAMPLE	Example.	Default values.		1			"""Client Example"""
-CHAR_ID_V1	Version v1.0.	LCD 16x2.
-CHAR_ID_V2	Version v2.0.	LCD 20x4.			20	4

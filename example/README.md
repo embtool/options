@@ -7,7 +7,7 @@
 
 # Quick-start with manual compilation
 
-- Generate Toggle files in include/ and src/ using files in csv/.
+- Generate Toggle files in include/ and src/ using files in yaml/.
 
 ```console
 $ ../generate.py

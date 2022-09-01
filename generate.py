@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import csv
+import sys
+import yaml
 import re
 import os
 from typing import Dict, List, Optional, Tuple
@@ -47,93 +48,103 @@ void testing_reset_toggles(void);
 """
 
 
-def read_csv_file(
-    csv_input: FileName, delimiter="\t", quotechar='"'
-) -> Tuple[List[str], List[str]]:
-    """Read from CSV file, return tuple with header and data."""
-    with open(csv_input) as csv_file:
-        defaults = list(
-            csv.reader(csv_file, delimiter=delimiter, quotechar=quotechar)
+def printerr(*args, **kwargs):
+    print(*args, **kwargs, file=sys.stderr)
+
+
+def is_empty(s):
+    return s in ("", None)
+
+
+def read_yaml_file(yaml_input: FileName) -> Tuple[List[str], List[str]]:
+    """Read from YAML file, return tuple with header and data."""
+    with open(yaml_input) as yaml_file:
+        data = yaml.load(
+            yaml_file,
+            Loader=yaml.BaseLoader,  # SafeLoader
         )
-    defaults = csv_fix_chars(defaults)
-    header, data = defaults[0], defaults[1:]
-    return header, data
+    if data is None:
+        return []
+    return list(data)
 
 
-def csv_fix_chars(data: List[List[str]]) -> List[List[str]]:
-    """Fix some characters that commonly appear in CSV files."""
-    sub = {
-        # LibreOffice Calc
-        "“": '"',  # Opening quote
-        "”": '"',  # Closing quote
-        "–": "-",  # Long dash
-    }
-    for num_rows, row in enumerate(data):
-        for i, v in enumerate(row):
-            for k, d in sub.items():
-                if k in v:
-                    data[num_rows][i] = data[num_rows][i].replace(k, d)
-    return data
+def read_defaults(yaml_input: FileName) -> Dict[str, Dict[str, str]]:
+    """Read default values from YAML file, return dict with name and data."""
 
+    # Read from YAML file
+    data = read_yaml_file(yaml_input)
 
-def read_defaults(
-    csv_input: FileName = "csv/defaults.csv",
-) -> Dict[str, Dict[str, str]]:
-    """Read default values from CSV file, return dict with name and data."""
-    defaults = {}
-
-    # Read from CSV file
-    header, data = read_csv_file(csv_input)
-    assert header[0] == "NAME", "NAME is expected as first column"
+    necessary = {"NAME", "DEFAULT", "TYPE", "DECL", "BRIEF"}
+    optional = {"DESCRIPTION", "H", "C", "TEST_ASSIGN"}
+    all_known = {*necessary, *optional}
 
     # Insert data in the dict
-    for row in data:
-        if len(row) == 0 or row[0] == "":
-            # Ignore empty rows.
-            continue
-        elif len(row) < len(header):
-            # Fill row with missing columns.
-            # Tools like pre-commit remove trailing whitespace (tabs).
-            num = len(header) - len(row)
-            row += ["" for _ in range(num)]
+    defaults = {}
+    for x in data:
+        # Assert necessary fields are present
+        for field in necessary:
+            assert field in x, f"Field '{field}' is missing on data {x}"
 
-        name = row[0]
-        assert name not in defaults, f"NAME '{name}' is repeated"
+        # Add missing optional fields
+        for field in optional:
+            if field not in x:
+                x[field] = None
 
-        defaults[name] = dict(zip(header, row))
+        # Warn any unknown fields
+        for y in x:
+            if y not in all_known:
+                printerr(f"Warning: unknown field '{y}' in data {x}")
 
-        # Add missing columns
-        for col in (
-            "H",
-            "C",
-            "TEST_ASSIGN",
-        ):
-            if col not in defaults[name]:
-                defaults[name][col] = ""
+        # Assert option is not repeated
+        name = x["NAME"]
+        assert name not in defaults, f"Option '{name}' is duplicated"
+        defaults[name] = x
 
     return defaults
 
 
 def read_char_ids(
-    csv_input: FileName = "csv/char_ids.csv",
+    yaml_input: FileName,
+    defaults: Dict[str, Dict[str, str]] = {},
 ) -> Dict[str, Dict[str, str]]:
     """
-    Read characterizations from CSV file, return dict with char_id and data.
+    Read characterizations from YAML file, return dict with char_id and data.
     """
-    defaults = {}
 
-    # Read from CSV file
-    header, data = read_csv_file(csv_input)
-    assert header[0] == "CHAR_ID", "CHAR_ID is expected as first column"
+    # Read from YAML file
+    data = read_yaml_file(yaml_input)
+
+    necessary = {"CHAR_ID", "BRIEF"}
+    optional = {"DESCRIPTION"}
+    all_known = {*necessary, *optional, *defaults.keys()}
 
     # Insert data in the dict
-    for row in data:
-        char_id = row[0]
-        assert char_id not in defaults, f"CHAR_ID '{char_id}' is repeated"
+    char_ids = {}
+    for x in data:
+        # Assert necessary fields are present
+        for field in necessary:
+            assert field in x, f"Field '{field}' is missing on data {x}"
 
-        defaults[char_id] = dict(zip(header, row))
+        # Add missing optional fields
+        for field in optional:
+            if field not in x:
+                x[field] = None
+                # if field in defaults:
+                #    x[field] = defaults[field]["DEFAULT"]
+                # else:
+                #    x[field] = None
 
-    return defaults
+        # Warn any unknown fields
+        for y in x:
+            if y not in all_known:
+                printerr(f"Warning: unknown field '{y}' in data {x}")
+
+        # Assert char ID is not repeated
+        name = x["CHAR_ID"]
+        assert name not in char_ids, f"Char ID '{name}' is duplicated"
+        char_ids[name] = x
+
+    return char_ids
 
 
 def write_characterization_header(
@@ -277,7 +288,7 @@ def format_brief_descr_comment(
 ) -> str:
     comment = "" if mid_comment else "/** "
 
-    if descr == "":
+    if is_empty(descr):
         comment += f"@brief {brief}"
         comment += "" if mid_comment else " */"
     else:
@@ -441,6 +452,7 @@ def write_char_id_header(
 
 
 def format_comment(comment: str, *, indent: int = 0) -> str:
+    comment = comment.rstrip()
     lines = ["", *comment.split("\n")]
     comment = f"\n{' ' * indent} * ".join(lines)
     return comment
@@ -500,7 +512,7 @@ def error_if_value_option_is_set_on_characterization_file(
         assert name not in char_id, (
             f"{name} is declared with TYPE = VALUE and cannot be "
             "redefined in the characterization. Remove the column "
-            f"{name} from the file csv/char_ids.csv."
+            f"{name} from the file yaml/char_ids.yaml."
         )
 
 
@@ -517,6 +529,11 @@ def format_ch_def_decl(
     value = get_value(name, defaults, char_id)
     testing = is_testing(char_id)
     testing_changes = False
+
+    print()
+    print(code)
+    print(defaults)
+    print(char_id)
 
     error_if_value_option_is_set_on_characterization_file(
         name, defaults, char_id
@@ -542,7 +559,10 @@ def format_ch_def_decl(
         # CUSTOM cannot be tested
         testing_changes = False
 
-    if code == "":
+    if is_empty(code):
+        # Make sure it is at lease an empty string
+        code = ""
+
         # DECL part 2
         if decl == "MACRO":
             # MACRO (without type) cannot be tested
@@ -646,8 +666,8 @@ def clean_code(code: str) -> str:
 
 
 def main():
-    defaults = read_defaults()
-    char_ids = read_char_ids()
+    defaults = read_defaults("yaml/defaults.yaml")
+    char_ids = read_char_ids("yaml/char_ids.yaml", defaults=defaults)
 
     write_characterization_header(defaults, char_ids)
     write_characterization_source(defaults, char_ids)

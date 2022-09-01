@@ -1,0 +1,22 @@
+- CHAR_ID: CHAR_ID_TEST
+  BRIEF: Unit-tests.
+  DESCRIPTION: Unit-tests.
+  TESTING: 1
+  DEBUG_PRINT: 1
+  CLIENT_NAME: '"XXXXXXXX 31 chars+null XXXXXXXX"'
+
+- CHAR_ID: CHAR_ID_EXAMPLE
+  BRIEF: Example.
+  DEBUG_PRINT: 1
+  DESCRIPTION: Default values.
+
+- CHAR_ID: CHAR_ID_V1
+  BRIEF: Version v1.0.
+  DESCRIPTION: LCD 16x2.
+  CLIENT_NAME: '"Client Example"'
+
+- CHAR_ID: CHAR_ID_V2
+  BRIEF: Version v2.0.
+  DESCRIPTION: LCD 20x4.
+  LCD_COLS: 20
+  LCD_LINES: 4

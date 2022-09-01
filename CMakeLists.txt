@@ -3,10 +3,10 @@ project(toggle VERSION 1.1)
 
 # Generate Toggle files with automatic update and add Toggle libraries.
 #
-# The generated files are updated whenever the files csv/defaults.csv or
-# csv/char_ids.csv change.
+# The generated files are updated whenever the files yaml/defaults.yaml or
+# yaml/char_ids.yaml change.
 #
-# Pass the library name and the path to the csv/ directory. The generated files
+# Pass the library name and the path to the yaml/ directory. The generated files
 # are created in include/ and src/ in that directory.
 #
 # Usage: add_toggle_library(mycharids path/to/chars)
@@ -31,7 +31,7 @@ function(add_toggle_library target directory)
     OUTPUT ${directory}/include/toggle.h ${directory}/src/toggle.c
     COMMAND ${toggle_SOURCE_DIR}/generate.py
     WORKING_DIRECTORY ${directory}
-    DEPENDS ${directory}/csv/defaults.csv ${directory}/csv/char_ids.csv
+    DEPENDS ${directory}/yaml/defaults.yaml ${directory}/yaml/char_ids.yaml
     COMMENT "Generating Toggle files for \"${target}\"")
 
   # Requested library
