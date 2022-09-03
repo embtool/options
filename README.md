@@ -395,7 +395,7 @@ The file `yaml/char_ids.yaml` defines the list of characterizations and
 their values. The description of the columns is provide below.
 
 - **CHAR_ID**: Characterization name
-- **BASED_ON**: Base on other characterization
+- **BASED_ON**: Base on other characterizations
 - **BRIEF**: Brief description
 - **DESCRIPTION**: Full description
 - **TESTING**: Special option for testing
@@ -434,8 +434,11 @@ Example of yaml/char_ids.yaml file:
 **CHAR_ID**: Characterization name. Must be a valid C/C++
 identifier (`[a-zA-Z][a-za-z0-9]*`).
 
-**BASED_ON**: Base on other characterization. Take the base values and
-update the others.
+**BASED_ON**: Base on other characterizations. Apply the values of each
+base in order then apply the new characterization values. It is best to
+use orthogonal bases, bases that touch different options (including
+their bases).
+Ex: `BASED_ON: HW_V3` or `BASED_ON: [HW_V3, CHAR_ID_TEST]`.
 
 **BRIEF**: Brief description to be added as documentation.
 

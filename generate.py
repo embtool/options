@@ -97,7 +97,7 @@ def read_defaults(yaml_input: FileName) -> Dict[str, Dict[str, str]]:
 
         # Assert option is not repeated
         name = x["NAME"]
-        assert name not in defaults, f"Option '{name}' is duplicated"
+        assert name not in defaults, f"Option '{name}' is duplicated on {x}"
         defaults[name] = x
 
     return defaults
@@ -137,14 +137,30 @@ def read_char_ids(
 
         # Assert char ID is not repeated
         name = x["CHAR_ID"]
-        assert name not in char_ids, f"Char ID '{name}' is duplicated"
+        assert name not in char_ids, f"Char ID '{name}' is duplicated on {x}"
 
         # Process char ID based on other char ID
         based_on = x["BASED_ON"]
         if based_on is None:
             xx = x
         else:
-            xx = char_ids[based_on].copy()
+            if isinstance(based_on, str):
+                based_on = [based_on]
+            elif isinstance(based_on, list):
+                pass
+            else:
+                assert False, f"BASED_ON must be a string or list of strings"
+
+            xx = {}
+            for base in based_on:
+                assert isinstance(
+                    base, str
+                ), f"BASED_ON must be a string or list of strings"
+                assert base in char_ids, (
+                    f"Char ID '{base}' is not defined."
+                    f" Available: {list(char_ids.keys())}."
+                )
+                xx.update(char_ids[base])
             xx.update(x)
 
         char_ids[name] = xx
@@ -516,8 +532,8 @@ def error_if_value_option_is_set_on_characterization_file(
     elif defaults["TYPE"].startswith("VALUE") and name in char_id:
         assert name not in char_id, (
             f"{name} is declared with TYPE = VALUE and cannot be "
-            "redefined in the characterization. Remove the column "
-            f"{name} from the file yaml/char_ids.yaml."
+            "redefined in the characterization. "
+            f"Remove {name} from the file yaml/char_ids.yaml."
         )
 
 
