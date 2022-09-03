@@ -115,7 +115,7 @@ def read_char_ids(
     data = read_yaml_file(yaml_input)
 
     necessary = {"CHAR_ID", "BRIEF"}
-    optional = {"DESCRIPTION"}
+    optional = {"DESCRIPTION", "BASED_ON"}
     all_known = {*necessary, *optional, *defaults.keys()}
 
     # Insert data in the dict
@@ -138,7 +138,16 @@ def read_char_ids(
         # Assert char ID is not repeated
         name = x["CHAR_ID"]
         assert name not in char_ids, f"Char ID '{name}' is duplicated"
-        char_ids[name] = x
+
+        # Process char ID based on other char ID
+        based_on = x["BASED_ON"]
+        if based_on is None:
+            xx = x
+        else:
+            xx = char_ids[based_on].copy()
+            xx.update(x)
+
+        char_ids[name] = xx
 
     return char_ids
 
