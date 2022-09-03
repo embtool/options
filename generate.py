@@ -53,7 +53,7 @@ def printerr(*args, **kwargs):
 
 
 def is_empty(s):
-    return s in ("", None)
+    return s is None
 
 
 def read_yaml_file(yaml_input: FileName) -> Tuple[List[str], List[str]]:
