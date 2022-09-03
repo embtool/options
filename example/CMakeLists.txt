@@ -3,7 +3,7 @@ project(toggle_example VERSION 1.0)
 
 # Set default CHAR_ID
 set(CHAR_ID
-    CHAR_ID_EXAMPLE
+    CHAR_ID_TEST
     CACHE STRING "Characterization")
 
 # Add Toggle as an external project

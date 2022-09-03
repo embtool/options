@@ -74,7 +74,7 @@ and define the characterizations with the values for the options
 5. Compile defining the characterization:
    - Add `-D CHAR_ID=CHAR_ID_TEST` to compile with the test
      characterization
-   - Add `-D CHAR_ID=CHAR_ID_EXAMPLE` to compile with the example
+   - Add `-D CHAR_ID=ANOTHER_CHAR_ID` to compile with another
      characterization
 
 See the example/.
@@ -95,7 +95,7 @@ project(toggle_example VERSION 1.0)
 
 # Set default CHAR_ID
 set(CHAR_ID
-    CHAR_ID_EXAMPLE
+    CHAR_ID_TEST
     CACHE STRING "Characterization")
 
 # Option A:
@@ -463,17 +463,13 @@ variables.
 ```
 
 - yaml/char_ids.yaml:
-  - It is recommended to leave the characterizations "CHAR_ID_TEST" and
-    "CHAR_ID_EXAMPLE" in the characterizations file.
+  - It is recommended to leave the characterization "CHAR_ID_TEST" in
+    the characterizations file.
   - Add characterizations as you need.
 
 ```yaml
-- CHAR_ID: CHAR_ID_TESTS
+- CHAR_ID: CHAR_ID_TEST
   BRIEF: Testing.
   DESCRIPTION: Characterization for unit-tests.
   TESTING: 1
-
-- CHAR_ID: CHAR_ID_EXAMPLE
-  BRIEF: Example.
-  DESCRIPTION: Characterization with default values.
 ```

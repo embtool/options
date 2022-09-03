@@ -18,12 +18,21 @@ $ ../generate.py
 
 ```console
 $ gcc -o main main.c src/toggle.c -I include/
+... "CHAR_ID is not defined. Using default." ...
+
 $ ./main
 DEBUG: main: begin
 +----------------+
 |LCD 16x2        |
 |                |
 +----------------+
+TEST: main: changing display from 16x2 to 20x4
++--------------------+
+|LCD 20x4            |
+|                    |
+|                    |
+|                    |
++--------------------+
 DEBUG: main: end
 ```
 
@@ -34,6 +43,10 @@ DEBUG: main: end
 $ gcc -o main main.c src/toggle.c -I include/ -D CHAR_ID=CHAR_ID_TEST
 $ ./main
 DEBUG: main: begin
++----------------+
+|LCD 16x2        |
+|                |
++----------------+
 TEST: main: changing display from 16x2 to 20x4
 +--------------------+
 |LCD 20x4            |
@@ -72,21 +85,6 @@ $ ./main
 
 # Quick-start with CMake
 
-- Compile using the default characterization (CHAR_ID=CHAR_ID_EXAMPLE).
-- Execute.
-
-```console
-$ cmake -B build/
-$ cmake --build build/
-$ ./build/main
-DEBUG: main: begin
-+----------------+
-|LCD 16x2        |
-|                |
-+----------------+
-DEBUG: main: end
-```
-
 - Compile defining CHAR_ID to select the characterization for tests.
 - Execute.
 
@@ -95,6 +93,10 @@ $ cmake -B build/ -D CHAR_ID=CHAR_ID_TEST
 $ cmake --build build/
 $ ./build/main
 DEBUG: main: begin
++----------------+
+|LCD 16x2        |
+|                |
++----------------+
 TEST: main: changing display from 16x2 to 20x4
 +--------------------+
 |LCD 20x4            |

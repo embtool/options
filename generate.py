@@ -184,11 +184,11 @@ extern "C"
      * `cmake -D CHAR_ID=...`) or when calling the compiler (ex:
      * `gcc -D CHAR_ID=...`).
      */
-    #define CHAR_ID CHAR_ID_EXAMPLE
+    #define CHAR_ID CHAR_ID_TEST
 #endif
 
 #ifndef CHAR_ID
-    #define CHAR_ID CHAR_ID_EXAMPLE
+    #define CHAR_ID CHAR_ID_TEST
     #warning "CHAR_ID is not defined. Using default."
 #endif
 
