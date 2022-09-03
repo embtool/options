@@ -129,10 +129,6 @@ def read_char_ids(
         for field in optional:
             if field not in x:
                 x[field] = None
-                # if field in defaults:
-                #    x[field] = defaults[field]["DEFAULT"]
-                # else:
-                #    x[field] = None
 
         # Warn any unknown fields
         for y in x:
@@ -529,11 +525,6 @@ def format_ch_def_decl(
     value = get_value(name, defaults, char_id)
     testing = is_testing(char_id)
     testing_changes = False
-
-    print()
-    print(code)
-    print(defaults)
-    print(char_id)
 
     error_if_value_option_is_set_on_characterization_file(
         name, defaults, char_id
